@@ -1,37 +1,52 @@
+const stock = require('../models/stock');
 const StockModel = require('../models/stock')
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 const getStock = async (stockSymbol) => {
     return await StockModel.findById(stockSymbol);
 }
 
-const isLikeAllowed = (stock, ipAdress) => {
-    return stock.ip_addresses.contains(ipAdress);
+const encryptIpAddress = (plainIpAddress) => {
+    return bcrypt.hashSync(plainIpAddress, saltRounds);
 };
 
-exports.upsertStock = async (stockJson, doLike = false, ipAdress = '') => {
+const compareIpAddress = (plainIpAddress, hasedIpAddress) => {
+    return bcrypt.compareSync(plainIpAddress, hasedIpAddress);
+};
+
+const isLikeAllowed = (stock, ipAddress) => {
+    return !stock.ip_addresses.some((hashedIpAddress) => compareIpAddress(ipAddress, hashedIpAddress));
+};
+
+exports.upsertStock = async (stockJson, doLike = false, ipAddress = '') => {
     let returnedStock = await getStock(stockJson.stock);;
-    
+    const encryptedIpAddress = encryptIpAddress(ipAddress);
+
     if (!returnedStock) {
         // create a new stock
-        returnedStock = await StockModel.create({ _id: stockJson.stock, price: stockJson.price, likes: 0, ip_adresses: []});
+        returnedStock = await StockModel.create({ _id: stockJson.stock, price: stockJson.price, likes: doLike ? 1 : 0, ip_addresses: doLike ? [encryptedIpAddress] : [] });
+    } else {
+        const query = { _id: stockJson.stock };
+        const options = { upsert: true, new: true };
+        let update;
+        if (doLike && isLikeAllowed(returnedStock, ipAddress)) {
+            console.log('update allowed: ', ipAddress);
+            update = {
+                $set: { _id: stockJson.stock, price: stockJson.price },
+                $inc: { likes: 1 },
+                $push: { ip_addresses: encryptedIpAddress }
+            };
+        } else {
+            console.log('update NOT allowed: ', ipAddress);
+            update = {
+                $set: { _id: stockJson.stock, price: stockJson.price }
+            };
+        }
+        returnedStock = await StockModel.findOneAndUpdate(query, update, options);
     }
 
-    const query = { _id: stockJson.stock };
-    const options = { upsert: true };
-    let update;
-    if (doLike && isLikeAllowed(returnedStock, ipAdress)) {
-        update = {
-            $set: { _id: stockJson.stock, price: stockJson.price },
-            $inc: { likes: 1 },
-            $push: { ip_addresses: ipAdress }
-        };
-    } else {
-        update = {
-            $set: { _id: stockJson.stock, price: stockJson.price }
-        };
-    }
-    returnedStock = await StockModel.findOneAndUpdate(query, update, options);
-    console.log('Changed stock: ', returnedStock);
+    console.log('Final stock: ', returnedStock)
     return {
         stockData: {
             stock: returnedStock._id,
