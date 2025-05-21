@@ -25,7 +25,7 @@ app.use(
     useDefaults: true,
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", 'trusted-cdn.com']
+      scriptSrc: ["'self'"]
     }
   }));
 
