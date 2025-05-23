@@ -118,8 +118,8 @@ suite('Functional Tests', function () {
                     assert.property(res.body, 'stockData', 'Stock info should be contained in a StockData object');
                     assert.isArray(res.body.stockData);
                     assert.equal(res.body.stockData.length, 2);
-                    assert.property(res.body.stockData[0], 'rel-likes', 'Stock info should contain relative number of likes');
-                    assert.property(res.body.stockData[1], 'rel-likes', 'Stock info should contain relative number of likes');
+                    assert.property(res.body.stockData[0], 'rel_likes', 'Stock info should contain relative number of likes');
+                    assert.property(res.body.stockData[1], 'rel_likes', 'Stock info should contain relative number of likes');
                 }
                 done();
             });
@@ -141,8 +141,8 @@ suite('Functional Tests', function () {
                     assert.property(res.body, 'stockData', 'Stock info should be contained in a StockData object');
                     assert.isArray(res.body.stockData);
                     assert.equal(res.body.stockData.length, 2);
-                    assert.property(res.body.stockData[0], 'rel-likes', 'Stock info should contain relative number of likes');
-                    assert.property(res.body.stockData[1], 'rel-likes', 'Stock info should contain relative number of likes');
+                    assert.property(res.body.stockData[0], 'rel_likes', 'Stock info should contain relative number of likes');
+                    assert.property(res.body.stockData[1], 'rel_likes', 'Stock info should contain relative number of likes');
                 }
                 done();
             });

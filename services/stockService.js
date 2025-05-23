@@ -59,8 +59,8 @@ exports.upsertTwoStocks = async (stockJsonArr, doLike = false, ipAddress = '') =
         returnedStocksInfo.push(stockData);
     }
 
-    returnedStocksInfo[0]['rel-likes'] = returnedStocksInfo[0].likes - returnedStocksInfo[1].likes;
-    returnedStocksInfo[1]['rel-likes'] = returnedStocksInfo[1].likes - returnedStocksInfo[0].likes;
+    returnedStocksInfo[0]['rel_likes'] = returnedStocksInfo[0].likes - returnedStocksInfo[1].likes;
+    returnedStocksInfo[1]['rel_likes'] = returnedStocksInfo[1].likes - returnedStocksInfo[0].likes;
     delete returnedStocksInfo[0].likes;
     delete returnedStocksInfo[1].likes;
 
