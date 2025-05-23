@@ -31,14 +31,12 @@ exports.upsertStock = async (stockJson, doLike = false, ipAddress = '') => {
         const options = { upsert: true, new: true };
         let update;
         if (doLike && isLikeAllowed(returnedStock, ipAddress)) {
-            console.log('update allowed: ', ipAddress);
             update = {
                 $set: { _id: stockJson.stock, price: stockJson.price },
                 $inc: { likes: 1 },
                 $push: { ip_addresses: encryptedIpAddress }
             };
         } else {
-            console.log('update NOT allowed: ', ipAddress);
             update = {
                 $set: { _id: stockJson.stock, price: stockJson.price }
             };
@@ -46,13 +44,25 @@ exports.upsertStock = async (stockJson, doLike = false, ipAddress = '') => {
         returnedStock = await StockModel.findOneAndUpdate(query, update, options);
     }
 
-    console.log('Final stock: ', returnedStock)
     return {
-        stockData: {
-            stock: returnedStock._id,
-            price: returnedStock.price,
-            likes: returnedStock.likes
-        }
+        stock: returnedStock._id,
+        price: returnedStock.price,
+        likes: returnedStock.likes
     };
 
+}
+
+exports.upsertTwoStocks = async (stockJsonArr, doLike = false, ipAddress = '') => {
+    let returnedStocksInfo = [];
+    for (const stock of stockJsonArr) {
+        const stockData = await this.upsertStock(stock, doLike, ipAddress);
+        returnedStocksInfo.push(stockData);
+    }
+
+    returnedStocksInfo[0]['rel-likes'] = returnedStocksInfo[0].likes - returnedStocksInfo[1].likes;
+    returnedStocksInfo[1]['rel-likes'] = returnedStocksInfo[1].likes - returnedStocksInfo[0].likes;
+    delete returnedStocksInfo[0].likes;
+    delete returnedStocksInfo[1].likes;
+
+    return returnedStocksInfo
 }
